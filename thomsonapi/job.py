@@ -175,30 +175,36 @@ class Job:
         return self.count_object(response_xml)
 
     def get_job_detail_by_job_id(self, arr_job_id):
-        job_xml = self.get_job_xml()
-        xmldoc = minidom.parseString(job_xml)
-        itemlist = xmldoc.getElementsByTagName('jGetList:JItem')
         args=[]
-        workflow_list_json = Workflow(self.host, self.user, self.passwd).get_workflow()
-        for job in itemlist:
-            str_tmp = str(job.attributes.items())
-            JId = job.attributes['JId'].value if "'JId'" in str_tmp else '-1'
-            if int(JId) in arr_job_id:
-                State,Status,JId,Prog,StartDate,EndDate,Ver,jobname,workflowIdRef,workflow_name = self.parse_dom_object(job, workflow_list_json)
-                args.append({'jname'    : jobname,
-                            'wid'       : workflowIdRef,
-                            'wname'     : workflow_name,
-                            'state'     : State,
-                            'status'    : Status,
-                            'jid'       : JId,
-                            'prog'      : Prog,
-                            'startdate' : ThomsonTime().conver_UTC_2_unix_timestamp(StartDate) \
-                            if StartDate else '',
-                            'ver'       : Ver,
-                            'enddate'   : ThomsonTime().conver_UTC_2_unix_timestamp(EndDate) \
-                            if EndDate else ''
-                    })
-        return args
+        try:
+            job_xml = self.get_job_xml()
+            xmldoc = minidom.parseString(job_xml)
+            itemlist = xmldoc.getElementsByTagName('jGetList:JItem')
+            workflow_list_json = Workflow(self.host, self.user, self.passwd).get_workflow()
+            for job in itemlist:
+                str_tmp = str(job.attributes.items())
+                JId = job.attributes['JId'].value if "'JId'" in str_tmp else '-1'
+                if int(JId) in arr_job_id:
+                    State,Status,JId,Prog,StartDate,EndDate,Ver,jobname,workflowIdRef,workflow_name = self.parse_dom_object(job, workflow_list_json)
+                    args.append({'jname'    : jobname,
+                                'wid'       : workflowIdRef,
+                                'wname'     : workflow_name,
+                                'state'     : State,
+                                'status'    : Status,
+                                'jid'       : JId,
+                                'prog'      : Prog,
+                                'startdate' : ThomsonTime().conver_UTC_2_unix_timestamp(StartDate) \
+                                if StartDate else '',
+                                'ver'       : Ver,
+                                'enddate'   : ThomsonTime().conver_UTC_2_unix_timestamp(EndDate) \
+                                if EndDate else ''
+                        })
+            return args
+        except Exception as ex:
+            print(ex)
+            return args
+        finally:
+            return args
 
     def get_job_status(self):
         agrs = []
@@ -316,4 +322,3 @@ class JobDetail:
         body = body.replace('JobID', str(self.jid))
         response_xml = self.ts.get_response(headers, body)
         return self.parse_status(response_xml)
-
