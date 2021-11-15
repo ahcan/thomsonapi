@@ -57,6 +57,30 @@ class Node:
         else:
             return -1
 
+    def parse_xml_none_error(self, xml):
+        args = []
+        xmldoc = minidom.parseString(xml)
+        itemlist = xmldoc.getElementsByTagName('sGetNodesStats:RspSGNSOk')
+        for node in itemlist.item(0).childNodes:
+            NStatus,Cpu,AllocCpu,Unreachable,NId,NState,Mem,AllocMem = self.parse_dom_object(node)
+            args.append({'status'             : NStatus,
+                        'cpu'                 : int(Cpu),
+                        'alloccpu'            : int(AllocCpu),
+                        'uncreahable'         : Unreachable,
+                        'nid'                 : int(NId),
+                        'state'               : NState,
+                        'mem'                 : int(Mem),
+                        'allocmem'            : int(AllocMem)
+                })
+        return json.dumps(args)
+
+    def get_nodes(self):
+        """
+        get node without jcounter, jerror
+        """
+        xml = self.get_nodes_xml()
+        return self.parse_xml_none_error(xml)
+    
 class NodeDetail:
     def __init__(self, host, user, passwd, node_id):
         self.user = user
